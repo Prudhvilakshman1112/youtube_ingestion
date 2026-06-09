@@ -2,6 +2,7 @@ import boto3
 from botocore.exceptions import ClientError
 from app.core.config import settings
 import os
+import tempfile
 
 def get_s3_client():
     return boto3.client(
@@ -24,11 +25,29 @@ def ensure_bucket_exists(bucket_name: str):
             raise
 
 def upload_audio(file_path: str, video_id: str) -> str:
+    """Upload a WAV audio file to S3. Returns s3:// URI."""
     s3 = get_s3_client()
     bucket_name = settings.MINIO_BUCKET_NAME
     object_name = f"audio/{video_id}.wav"
     
     s3.upload_file(file_path, bucket_name, object_name)
     
-    # Return standard s3 URI format
+    return f"s3://{bucket_name}/{object_name}"
+
+def upload_transcript(text: str, video_id: str) -> str:
+    """Upload caption/transcript text as a .txt file to S3. Returns s3:// URI."""
+    s3 = get_s3_client()
+    bucket_name = settings.MINIO_BUCKET_NAME
+    object_name = f"transcripts/{video_id}.txt"
+    
+    # Write text to a temp file, then upload
+    tmp_path = os.path.join(tempfile.gettempdir(), f"{video_id}_transcript.txt")
+    try:
+        with open(tmp_path, 'w', encoding='utf-8') as f:
+            f.write(text)
+        s3.upload_file(tmp_path, bucket_name, object_name)
+    finally:
+        if os.path.exists(tmp_path):
+            os.remove(tmp_path)
+    
     return f"s3://{bucket_name}/{object_name}"

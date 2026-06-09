@@ -68,19 +68,22 @@ celery -A app.core.celery_app worker --loglevel=info --pool=solo
 2. **Test `/api/v1/videos/validate`**:
    - Click "Try it out".
    - Enter a URL: `{"url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"}`
-   - Execute. You should see metadata (Title, duration, etc.).
+   - Execute. You should see metadata (Title, duration, etc.) plus `has_captions: true` and the `captions_text` field with the full transcript.
 3. **Test `/api/v1/videos/process`**:
    - Click "Try it out".
    - Enter a URL: `{"url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"}`
-   - Execute. It will return a `task_id` (e.g., `d5c2e1...`).
+   - Execute. It will return a `task_id` (e.g., `13cd5d6f...`).
 4. **Test `/api/v1/videos/status/{task_id}`**:
    - Copy the `task_id` from the previous step.
    - Paste it into the `task_id` field and execute.
-   - You will see the state change (`FETCHING_METADATA` -> `DOWNLOADING_AUDIO` -> `COMPLETED`).
-5. **Verify Audio Upload**:
+   - You will see the state change (`FETCHING_METADATA` -> `FETCHING_CAPTIONS` -> `UPLOADING_TRANSCRIPT` or `DOWNLOADING_AUDIO` -> `SUCCESS`).
+   - The result will contain either `s3_transcript_uri` (if captions existed) or `s3_audio_uri` (if audio was downloaded).
+5. **Verify Storage Upload**:
    - Open **http://localhost:9001** in your browser.
    - Login with `minioadmin` / `minioadmin`.
-   - Go to Object Browser -> `video-synopsis-audio` -> `audio`. You should see the `.wav` file!
+   - Go to Object Browser -> `video-synopsis-audio`.
+   - **If the video had captions:** Check `transcripts/` folder — you should see a `.txt` file!
+   - **If the video had no captions:** Check `audio/` folder — you should see a `.wav` file!
 
 ---
 

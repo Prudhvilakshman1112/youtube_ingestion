@@ -10,6 +10,7 @@ class VideoMetadataResponse(BaseModel):
     duration_seconds: int
     thumbnail_url: str
     has_captions: bool
+    captions_text: Optional[str] = None
 
 class ProcessResponse(BaseModel):
     task_id: str

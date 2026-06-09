@@ -20,6 +20,7 @@ def validate_and_fetch_metadata(request: VideoRequest) -> Any:
         raise HTTPException(status_code=400, detail=str(e))
     
     has_captions = False
+    captions = None
     try:
         captions = fetch_captions(video_id)
         has_captions = bool(captions)
@@ -27,6 +28,7 @@ def validate_and_fetch_metadata(request: VideoRequest) -> Any:
         pass
     
     metadata["has_captions"] = has_captions
+    metadata["captions_text"] = captions
     return metadata
 
 @router.post("/process", response_model=ProcessResponse)
@@ -43,5 +45,5 @@ def get_task_status(task_id: str) -> Any:
         "task_id": task_id,
         "state": task_result.state,
         "progress": task_result.info.get("progress") if isinstance(task_result.info, dict) else None,
-        "result": task_result.result if task_result.state == "COMPLETED" else None
+        "result": task_result.result if task_result.state == "SUCCESS" else None
     }

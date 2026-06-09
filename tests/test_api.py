@@ -11,6 +11,7 @@ def test_validate_endpoint(client):
     assert "title" in data
     assert "duration_seconds" in data
     assert "has_captions" in data
+    assert "captions_text" in data
 
 @patch('app.api.v1.routes.process_video_ingestion')
 def test_process_endpoint(mock_process, client):
